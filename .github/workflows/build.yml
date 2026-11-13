@@ -1,0 +1,36 @@
+name: build-libswiftObservation-ios16
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build dylib
+        run: |
+          set -e
+          SDK="$(xcrun --sdk iphoneos --show-sdk-path)"
+          mkdir -p out
+          swiftc -emit-library \
+            -target arm64-apple-ios16.0 \
+            -sdk "$SDK" \
+            -module-name Observation \
+            -emit-module -emit-module-path out/Observation.swiftmodule \
+            -o out/libswiftObservation.dylib \
+            Sources/Locking.swift \
+            Sources/Observable.swift \
+            Sources/ObservationRegistrar.swift \
+            Sources/ObservationTracking.swift \
+            Sources/ThreadLocal.swift
+          file out/libswiftObservation.dylib
+          ls -l out
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: libswiftObservation-ios16
+          path: out/libswiftObservation.dylib
